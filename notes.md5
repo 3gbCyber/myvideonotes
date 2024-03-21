@@ -1,0 +1,69 @@
+https://capev2.readthedocs.io/en/latest/installation/host/installation.html
+
+sudo apt-get update && sudo apt-get upgrade -y
+sudo chmod -R a+rwx /opt/
+cd /opt
+git clone https://github.com/kevoreilly/CAPEv2.git
+sudo apt install git
+cd CAPEv2/installer
+sed -i 's/<WOOT>/BXPC/g' kvm-qemu.sh
+chmod a+x kvm-qemu.sh
+chmod a+x cape2.sh
+-------------------------------------------------
+sudo ./kvm-qemu.sh all cape | tee kvm-qemu.log
+sudo reboot
+
+cd /opt/CAPEv2/installer
+sudo ./kvm-qemu.sh virtmanager cape | tee kvm-qemu-virt-manager.log
+sudo reboot
+
+cd /opt/CAPEv2/installer
+sudo ./cape2.sh all cape | tee cape.log
+sudo reboot
+
+cd /opt/CAPEv2
+poetry install
+poetry env list
+---- poetry run pip install -r requirements.txt -------
+sudo -u cape poetry run pip install -r extra/optional_dependencies.txt
+sudo -u cape poetry run pip install pyattck==7.1.2
+-----------------------------
+cd /opt/CAPEv2
+sudo apt install dbus-x11
+sudo poetry install
+-----------------------------
+nano /opt/CAPEv2/conf/cuckoo.conf
+under [resultserver]
+ip = *yourip VM IP* example: 192.168.122.1
+
+nano /opt/CAPEv2/conf/kvm.conf
+add VM info like name, label, platfarm, ip ...etc
+-----------------------------
+in VMs
+
+(windows 11 64x, windows 10 64x, windows 7 64x, windows 7 32x)
+
+user: admin
+password: ******.... (windows 10 and 11 no password needs)
+
+- download python #python must be x32 version (windows 7 version 3.7.0) ( windows 10 version 3.10.6)
+- python -m pip install Pillow==9.5.0
+- Download and install OfficeSetup.exe (if you have a license) 
+- Download pdf reader
+- Download .NET Framwork (3.5 win7 4.8 win10-11)
+- Download 7z for windows 10-11 and 7 winrar
+- Create 2-4 files and docs in Desktop (to make the vm looks like reality)
+- disable anti-virus
+- disable auto update
+- disable firewall
+- add the agent in task scheduler run when it log on as admin
+
+-----------
+
+Don't forget to do:
+
+HOSTONLY
+STATIC IP for the VM
+AGENT CONNECTION (Make sure by "curl vmip:8000" to see if the agent works as expect)
+take a SNAPSHOT X (name it snapshot1)
+make sure the interface name on KVM.conf 
