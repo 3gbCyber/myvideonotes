@@ -67,3 +67,8 @@ STATIC IP for the VM
 AGENT CONNECTION (Make sure by "curl vmip:8000" to see if the agent works as expect)
 take a SNAPSHOT X (name it snapshot1)
 make sure the interface name on KVM.conf 
+
+---------- 
+install mongodb:
+
+https://www.cherryservers.com/blog/install-mongodb-ubuntu-22-04
