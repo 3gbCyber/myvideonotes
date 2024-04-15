@@ -3,8 +3,8 @@ https://capev2.readthedocs.io/en/latest/installation/host/installation.html
 sudo apt-get update && sudo apt-get upgrade -y
 sudo chmod -R a+rwx /opt/
 cd /opt
-git clone https://github.com/kevoreilly/CAPEv2.git
 sudo apt install git
+git clone https://github.com/kevoreilly/CAPEv2.git
 cd CAPEv2/installer
 sed -i 's/<WOOT>/BXPC/g' kvm-qemu.sh
 chmod a+x kvm-qemu.sh
@@ -15,7 +15,6 @@ sudo reboot
 
 cd /opt/CAPEv2/installer
 sudo ./kvm-qemu.sh virtmanager cape | tee kvm-qemu-virt-manager.log
-sudo reboot
 
 cd /opt/CAPEv2/installer
 sudo ./cape2.sh all cape | tee cape.log
