@@ -1,0 +1,101 @@
+
+==== Install Shuffle ====
+
+(DOCKER PART)
+
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo docker run hello-world
+sudo groupadd docker
+sudo gpasswd -a $USER docker
+newgrp docker
+docker run hello-world
+
+(Shuffle Install Part)
+
+https://github.com/shuffle/shuffle/blob/main/.github/install-guide.md
+
+==== sysmon ====
+
+https://download.sysinternals.com/files/Sysmon.zip
+https://github.com/olafhartong/sysmon-modular/blob/master/sysmonconfig.xml
+
+run as admin in powershell:
+.\Sysmon64.exe -i sysmonconfig.xml
+
+
+add these in C:\Program Files (x86)\ossec-agent\ossec.conf in Win10:
+
+<localfile>
+  <location>Microsoft-Windows-Sysmon/Operational</location>
+  <log_format>eventchannel</log_format>
+</localfile>
+
+run as admin in powershell:
+Restart-Service -Name Wazuh
+
+
+==== Wazuh ====
+
+Edit /var/ossec/etc/ossec.conf and add these:
+
+<integration>
+    <name>shuffle</name>
+    <hook_url>http://SHUFFLE-IP:3001/api/v1/hooks/webhook_b7e0c6e6-654c-4c54-97b2-a01aeda9c64e </hook_url>
+    <rule_id>100002</rule_id>
+    <alert_format>json</alert_format>
+</integration>
+
+run this command:
+sudo systemctl restart wazuh-manager
+
+in UI edit this rule: local_rules.xml and add these:
+
+  <rule id="100002" level="15">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.originalFileName" type="pcre2">(?i)mimikatz\.exe</field>
+    <description>Mimikatz Usage Detected</description>
+    <mitre>
+      <id>T1003</id>
+    </mitre>
+  </rule>
+  
+==== Workflow ====
+
+IRIS BODY:
+
+{
+  "alert_title": "$exec.title",
+  "alert_description": "Mimikatz detected on host:$exec.text.win.system.computer vi user:$exec.text.win.eventdata.user & The Virustotal scan's result is $virustotal_v3_1.#.body.data.attributes.last_analysis_stats.malicious of 74. Mimikatz activity detection on the process ID:$exec.text.win.system.processID in the path: $exec.all_fields.data.win.eventdata.image, The SHA256 of the file is $sha256.group_0.#",
+  "alert_source": "Wazuh - Shuffle",
+  "alert_source_ref": "Rule: 100002",
+  "alert_source_link": "https://www.virustotal.com/gui/file/$sha256.group_0.#",
+  "alert_severity_id": 5,
+  "alert_status_id": 5,
+  "alert_source_event_time": "$exec.text.win.system.systemTime",
+  "alert_note": "Mimikatz activity detection on host: $exec.text.win.system.computer and the process ID:$exec.text.win.system.processID",
+  "alert_tags": "[T1003]",
+  "alert_customer_id": 1,
+  "alert_classification_id": 2,
+  "alert_source_content": "Shuffle"
+}
+
+
+
+===== Win10 test ====
+
+before run mimikatz run this in powershell:
+Set-ExecutionPolicy RemoteSigned
