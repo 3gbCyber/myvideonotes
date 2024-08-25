@@ -1,0 +1,66 @@
+
+[Install Velociraptor]
+
+- sudo apt update -y
+
+[https://github.com/Velocidex/velociraptor/releases]
+- mkdir velo && cd velo && wget https://github.com/Velocidex/velociraptor/releases/download/v0.72/velociraptor-v0.72.0-linux-amd64
+
+- sudo cp velociraptor-v0.72-rc1-linux-amd64 /usr/local/bin/velociraptor
+
+- sudo chmod +x /usr/local/bin/velociraptor
+
+- velociraptor config generate -i
+
+- sudo mv  *.config.yaml /etc/
+
+- sudo nano /etc/server.config.yaml 
+bind_address: *VM-IP*
+
+- sudo nano /lib/systemd/system/velociraptor.service
+
+---------------------------------------
+
+[Unit]
+Description=Velociraptor linux amd64
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=120
+LimitNOFILE=20000
+Environment=LANG=en_US.UTF-8
+ExecStart=/usr/local/bin/velociraptor --config /etc/server.config.yaml frontend -v
+
+[Install]
+WantedBy=multi-user.target
+
+----------------------------------------
+
+- sudo systemctl daemon-reload
+- sudo systemctl enable --now velociraptor
+- systemctl status velociraptor
+
+===========================================================
+
+https://*VM -IP*:8889/ 
+
+[Windows Agent]
+
+Wget https://github.com/Velocidex/velociraptor/releases/download/v0.72/velociraptor-v0.72-rc1-windows-amd64.msi
+chmod +x velociraptor-v0.72-rc1-linux-amd64
+chmod +x velociraptor-v0.72-rc1-windows-amd64.msi
+./velociraptor-v0.72-rc1-linux-amd64 config repack --msi velociraptor-v0.72-rc1-windows-amd64.msi /etc/client.config.yaml windows-agent.msi
+
+[Install Windows Agent]
+
+Just run it by admin
+
+[Linux Agent]
+
+./velociraptor-v0.72-rc1-linux-amd64 --config /etc/client.config.yaml debian client
+
+[Install Linux Agent]
+
+sudo dpkg -i velociraptor_client_0.72.rc1_amd64.deb
